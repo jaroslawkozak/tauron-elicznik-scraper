@@ -16,7 +16,8 @@ parser.add_argument("-d", "--date", dest="date", default=(datetime.datetime.now(
 args = parser.parse_args()
 
 config = configparser.ConfigParser()
-config.read('./config.ini')
+config_path = os.path.dirname(__file__) + '/config.ini'
+config.read(config_path)
 
 username = config["tauron"]["username"]
 password = config["tauron"]["password"]
@@ -68,12 +69,12 @@ write_api = client.write_api(write_options=SYNCHRONOUS)
 
 for usage in elicznik["dane"]["chart"]:
     entry = elicznik["dane"]["chart"][usage]
-    date = datetime.datetime.strptime("{} {}".format(entry["Date"], int(entry["Hour"])-1), '%Y-%m-%d %H') + datetime.timedelta(hours=1)
-    p = influxdb_client.Point("elicznik_hourly").tag("meter_id", meter_id).time(date).field("usage", float(entry["EC"])*1000)
+    date = datetime.datetime.strptime("{} {}".format(entry["Date"], int(entry["Hour"])-1), '%Y-%m-%d %H') + datetime.timedelta(hours=0)
+    p = influxdb_client.Point("elicznik_hourly_usage").tag("meter_id", meter_id).time(date).field("usage", float(entry["EC"])*1000)
     write_api.write(bucket=config["influx"]["bucket"], org=config["influx"]["org"], record=p)
 
 for usage in elicznik["dane"]["OZE"]:
     entry = elicznik["dane"]["OZE"][usage]
-    date = datetime.datetime.strptime("{} {}".format(entry["Date"], int(entry["Hour"])-1), '%Y-%m-%d %H') + datetime.timedelta(hours=1)
-    p = influxdb_client.Point("elicznik_hourly").tag("meter_id", meter_id).time(date).field("produced", float(entry["EC"])*1000)
+    date = datetime.datetime.strptime("{} {}".format(entry["Date"], int(entry["Hour"])-1), '%Y-%m-%d %H') + datetime.timedelta(hours=0)
+    p = influxdb_client.Point("elicznik_hourly_production").tag("meter_id", meter_id).time(date).field("produced", float(entry["EC"])*1000)
     write_api.write(bucket=config["influx"]["bucket"], org=config["influx"]["org"], record=p)
